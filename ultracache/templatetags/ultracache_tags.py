@@ -65,7 +65,7 @@ class UltraCacheNode(CacheNode):
             except VariableDoesNotExist:
                 pass
             if isinstance(r, Promise):
-                r = unicode(r)
+                r = str(r)
             vary_on.append(r)
 
         cache_key = make_template_fragment_key(self.fragment_name, vary_on)
