@@ -1,5 +1,6 @@
 Django Ultracache
 =================
+**[WIP] getting django ultracache to work with python3**
 **Drop-in replacement for Django's template fragment caching. Cache views and Django Rest Framework viewsets. Automatic cache invalidation and reverse caching proxy purging.**
 
 .. figure:: https://travis-ci.org/praekelt/django-ultracache.svg?branch=develop
