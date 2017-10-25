@@ -48,7 +48,7 @@ urlpatterns = [
     ),
 ]
 
-
+@override_settings(ROOT_URLCONF=__name__)
 class TemplateTagsTestCase(TestCase):
     fixtures = ["sites.json"]
 
@@ -164,7 +164,7 @@ class TemplateTagsTestCase(TestCase):
                     counter three = {{ counter }}
                 {% endultracache %}
                 {% ultracache 1200 'test_ultracache_invalidate_render_view' %}
-                    {% render_view 'tests/render-view' %}
+                    {% render_view 'render-view' %}
                 {% endultracache %}
                 {% ultracache 1200 'test_ultracache_invalidate_include %}
                     {% include "tests/include_me.html" %}
@@ -215,7 +215,7 @@ class TemplateTagsTestCase(TestCase):
         self.assertTrue('counter three = 2' in result)
         self.assertTrue('render_view = Onxe' in result)
         self.assertTrue('include = Onxe' in result)
-        self.assertFalse(dummy_proxy.is_cached('/aaa/'))
+        self.assertFalse(dummy_proxy.is_cached('/aaa/'), msg=dummy_proxy["/aaa/"])
 
         # Change object two
         two.title = 'Twxo'
@@ -343,7 +343,7 @@ class DecoratorTestCase(TestCase):
         self.assertTrue('title = Two' in result)
         self.assertTrue('title = Three' in result)
         self.assertTrue('render_view = One' in result)
-        self.assertTrue('include = One' in result)
+        self.assertTrue('include = One' in result, msg=result)
         self.assertTrue('counter one = 1' in result)
         self.assertTrue('counter two = 1' in result)
         self.assertTrue('counter three = 1' in result)

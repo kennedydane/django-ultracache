@@ -12,6 +12,5 @@ class DummyProxy(dict):
 
 dummy_proxy = DummyProxy()
 
-
 def dummy_purger(path):
     dummy_proxy.purge(path)

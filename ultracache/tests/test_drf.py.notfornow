@@ -6,13 +6,49 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.conf import settings
+from django.conf.urls import include, url
 
 from rest_framework.test import APIRequestFactory, APIClient
+from rest_framework.routers import DefaultRouter
+
+from ultracache.tests import views, viewsets
 
 from ultracache.tests.models import DummyModel
 from ultracache.tests.viewsets import DummyViewSet
 
+router = DefaultRouter()
+router.register(r"dummies", viewsets.DummyViewSet)
 
+urlpatterns = [
+    url(r'^api/', include(router.urls)),
+    url(
+        r'^render-view/$',
+        views.RenderView.as_view(),
+        name='render-view'
+    ),
+    url(
+        r'^cached-view/$',
+        views.CachedView.as_view(),
+        name='cached-view'
+    ),
+    url(
+        r'^cached-header-view/$',
+        views.CachedHeaderView.as_view(),
+        name='cached-header-view'
+    ),
+    url(
+        r'^bustable-cached-view/$',
+        views.BustableCachedView.as_view(),
+        name='bustable-cached-view'
+    ),
+    url(
+        r'^non-bustable-cached-view/$',
+        views.NonBustableCachedView.as_view(),
+        name='non-bustable-cached-view'
+    ),
+]
+
+@override_settings(ROOT_URLCONF=__name__)
 class DRFTestCase(TestCase):
     fixtures = ["sites.json"]
 
@@ -24,8 +60,10 @@ class DRFTestCase(TestCase):
 
         # Superuser
         cls.superuser = cls.user_model.objects.create(
-            username="superuser",
+            first_name="super",
+            last_name="user",
             email="superuser@test.com",
+            qualification=1,
             is_superuser=True,
             is_staff=True
         )
@@ -34,7 +72,9 @@ class DRFTestCase(TestCase):
 
         # Staff
         cls.staff = cls.user_model.objects.create(
-            username="staff",
+            first_name="staff",
+            last_name="Mc StaffFace",
+            qualification=2,
             email="staff@test.com",
             is_staff=True
         )
@@ -43,7 +83,9 @@ class DRFTestCase(TestCase):
 
         # Plain user
         cls.user = cls.user_model.objects.create(
-            username="user",
+            first_name="user",
+            last_name="bluezir",
+            qualification=3,
             email="user@test.com"
         )
         cls.user.set_password("password")
@@ -64,25 +106,25 @@ class DRFTestCase(TestCase):
 
     def test_get_dummymodels(self):
         response = self.client.get("/api/dummies/")
-        as_json_1 = json.loads(response.content)
+        as_json_1 = json.loads(response.content.decode("utf-8"))
 
         # Drop to low level API so post_save does not trigger, meaning the
         # cached version is fetched on the next request.
         DummyModel.objects.filter(pk=self.one.pk).update(title="Onae")
         response = self.client.get("/api/dummies/")
-        as_json_2 = json.loads(response.content)
+        as_json_2 = json.loads(response.content.decode("utf-8"))
         self.assertEqual(as_json_1, as_json_2)
 
         # Modify it the normal way, which removes the item from cache.
         self.one.title = "Onbe"
         self.one.save()
         response = self.client.get("/api/dummies/")
-        as_json_3 = json.loads(response.content)
+        as_json_3 = json.loads(response.content.decode("utf-8"))
         self.assertNotEqual(as_json_1, as_json_3)
 
         # Trivial fetch to prove it is cached now
         response = self.client.get("/api/dummies/")
-        as_json_4 = json.loads(response.content)
+        as_json_4 = json.loads(response.content.decode("utf-8"))
         self.assertEqual(as_json_3, as_json_4)
 
         # Modify via API to confirm that post_save is fired implicitly
@@ -91,7 +133,7 @@ class DRFTestCase(TestCase):
         }
         response = self.client.patch("/api/dummies/%s/" % self.one.pk, data)
         response = self.client.get("/api/dummies/")
-        as_json_5 = json.loads(response.content)
+        as_json_5 = json.loads(response.content.decode("utf-8"))
         self.assertNotEqual(as_json_4, as_json_5)
 
         # Add an evaluate parameter which leads to a cache miss. Also
@@ -101,12 +143,12 @@ class DRFTestCase(TestCase):
         di["drf"] = {"viewsets": {"*": {"evaluate": "request.user.is_anonymous"}}}
         with override_settings(ULTRACACHE=di):
             response = self.client.get("/api/dummies/")
-            as_json_6 = json.loads(response.content)
+            as_json_6 = json.loads(response.content.decode("utf-8"))
             self.assertNotEqual(as_json_5, as_json_6)
 
         # Trivial fetch to refresh the cache
         response = self.client.get("/api/dummies/")
-        as_json_7 = json.loads(response.content)
+        as_json_7 = json.loads(response.content.decode("utf-8"))
 
         # Disable viewset caching which leads to a cache miss. Also
         # surreptiously edit the object so we can confirm a cache miss.
@@ -115,12 +157,12 @@ class DRFTestCase(TestCase):
         di["drf"] = {"viewsets": {object: {}}}
         with override_settings(ULTRACACHE=di):
             response = self.client.get("/api/dummies/")
-            as_json_8 = json.loads(response.content)
+            as_json_8 = json.loads(response.content.decode("utf-8"))
             self.assertNotEqual(as_json_7, as_json_8)
 
         # Trivial fetch to refresh the cache
         response = self.client.get("/api/dummies/")
-        as_json_9 = json.loads(response.content)
+        as_json_9 = json.loads(response.content.decode("utf-8"))
 
         # Enable viewset caching for a single viewset class. Also
         # surreptiously edit the object so we can confirm a cache hit.
@@ -129,24 +171,24 @@ class DRFTestCase(TestCase):
         di["drf"] = {"viewsets": {DummyViewSet: {}}}
         with override_settings(ULTRACACHE=di):
             response = self.client.get("/api/dummies/")
-            as_json_10 = json.loads(response.content)
+            as_json_10 = json.loads(response.content.decode("utf-8"))
             self.assertEqual(as_json_9, as_json_10)
 
     def test_get_dummymodel(self):
         url = "/api/dummies/%s/" % self.one.pk
         response = self.client.get(url)
-        as_json_1 = json.loads(response.content)
+        as_json_1 = json.loads(response.content.decode("utf-8"))
 
         # Drop to low level API so post_save does not trigger, meaning the
         # cached version is fetched on the next request.
         DummyModel.objects.filter(pk=self.one.pk).update(title="Onfe")
         response = self.client.get(url)
-        as_json_2 = json.loads(response.content)
+        as_json_2 = json.loads(response.content.decode("utf-8"))
         self.assertEqual(as_json_1, as_json_2)
 
         # Modify it the normal way, which removes the item from cache.
         self.one.title = "Onge"
         self.one.save()
         response = self.client.get(url)
-        as_json_3 = json.loads(response.content)
+        as_json_3 = json.loads(response.content.decode("utf-8"))
         self.assertNotEqual(as_json_1, as_json_3)

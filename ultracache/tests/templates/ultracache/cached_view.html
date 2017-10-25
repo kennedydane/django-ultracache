@@ -19,6 +19,6 @@ counter four = {{ counter }}
         {% render_view 'render-view' %}
     {% endultracache %}
     {% ultracache 1200 'test_ultracache_invalidate_include %}
-        {% include "ultracache/include_me.html" %}
+        {% include "tests/include_me.html" %}
     {% endultracache %}
 {% endultracache %}
