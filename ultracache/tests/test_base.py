@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django import template
+from django.conf.urls import include, url
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
 from django.core.cache import cache
@@ -8,11 +9,44 @@ from django.test import TestCase
 from django.test.client import Client, RequestFactory
 from django.test.utils import override_settings
 from django.conf import settings
+from rest_framework.routers import DefaultRouter
 
 from ultracache.tests.models import DummyModel, DummyForeignModel, \
     DummyOtherModel
-from ultracache.tests import views
+from ultracache.tests import views, viewsets
 from ultracache.tests.utils import dummy_proxy
+
+router = DefaultRouter()
+router.register(r"dummies", viewsets.DummyViewSet)
+
+urlpatterns = [
+    url(r'^api/', include(router.urls)),
+    url(
+        r'^render-view/$',
+        views.RenderView.as_view(),
+        name='render-view'
+    ),
+    url(
+        r'^cached-view/$',
+        views.CachedView.as_view(),
+        name='cached-view'
+    ),
+    url(
+        r'^cached-header-view/$',
+        views.CachedHeaderView.as_view(),
+        name='cached-header-view'
+    ),
+    url(
+        r'^bustable-cached-view/$',
+        views.BustableCachedView.as_view(),
+        name='bustable-cached-view'
+    ),
+    url(
+        r'^non-bustable-cached-view/$',
+        views.NonBustableCachedView.as_view(),
+        name='non-bustable-cached-view'
+    ),
+]
 
 
 class TemplateTagsTestCase(TestCase):
@@ -130,10 +164,10 @@ class TemplateTagsTestCase(TestCase):
                     counter three = {{ counter }}
                 {% endultracache %}
                 {% ultracache 1200 'test_ultracache_invalidate_render_view' %}
-                    {% render_view 'render-view' %}
+                    {% render_view 'tests/render-view' %}
                 {% endultracache %}
                 {% ultracache 1200 'test_ultracache_invalidate_include %}
-                    {% include "ultracache/include_me.html" %}
+                    {% include "tests/include_me.html" %}
                 {% endultracache %}
             {% endultracache %}"""
         )
@@ -278,7 +312,7 @@ class TemplateTagsTestCase(TestCase):
         self.assertTrue('counter three = 4' in result)
         self.assertFalse(dummy_proxy.is_cached('/eee/'))
 
-
+@override_settings(ROOT_URLCONF=__name__)
 class DecoratorTestCase(TestCase):
     fixtures = ["sites.json"]
 
@@ -303,7 +337,7 @@ class DecoratorTestCase(TestCase):
         # Initial render
         views.COUNTER = 1
         response = self.client.get(url)
-        result = response.content
+        result = response.content.decode()
         self.assertEqual(response.status_code, 200)
         self.assertTrue('title = One' in result)
         self.assertTrue('title = Two' in result)
@@ -321,7 +355,7 @@ class DecoratorTestCase(TestCase):
         one.title = 'Onxe'
         one.save()
         response = self.client.get(url)
-        result = response.content
+        result = response.content.decode()
         self.assertTrue('title = Onxe' in result)
         self.assertFalse('title = One' in result)
         self.assertTrue('title = Two' in result)
@@ -339,7 +373,7 @@ class DecoratorTestCase(TestCase):
         two.title = 'Twxo'
         two.save()
         response = self.client.get(url)
-        result = response.content
+        result = response.content.decode()
         self.assertTrue('title = Onxe' in result)
         self.assertFalse('title = One' in result)
         self.assertTrue('title = Twxo' in result)
@@ -358,7 +392,7 @@ class DecoratorTestCase(TestCase):
         three.title = 'Threxe'
         three.save()
         response = self.client.get(url)
-        result = response.content
+        result = response.content.decode()
         self.assertTrue('title = Onxe' in result)
         self.assertFalse('title = One' in result)
         self.assertTrue('title = Twxo' in result)
@@ -378,7 +412,7 @@ class DecoratorTestCase(TestCase):
         four.title = 'Fouxr'
         four.save()
         response = self.client.get(url)
-        result = response.content
+        result = response.content.decode()
         self.assertTrue('title = Onxe' in result)
         self.assertFalse('title = One' in result)
         self.assertTrue('title = Twxo' in result)
@@ -414,12 +448,12 @@ class DecoratorTestCase(TestCase):
         """
         url = reverse('bustable-cached-view')
         response = self.client.get(url + '?aaa=1')
-        self.assertTrue('aaa=1' in response.content)
+        self.assertTrue('aaa=1' in response.content.decode())
         response = self.client.get(url + '?aaa=2')
-        self.assertTrue('aaa=2' in response.content)
+        self.assertTrue('aaa=2' in response.content.decode())
 
         url = reverse('non-bustable-cached-view')
         response = self.client.get(url + '?aaa=1')
-        self.assertTrue('aaa=1' in response.content)
+        self.assertTrue('aaa=1' in response.content.decode())
         response = self.client.get(url + '?aaa=2')
-        self.assertFalse('aaa=2' in response.content)
+        self.assertFalse('aaa=2' in response.content.decode())

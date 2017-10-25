@@ -26,4 +26,5 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
     ],
     zip_safe=False,
+    python_requires=">=3.5",
 )

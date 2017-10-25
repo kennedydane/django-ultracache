@@ -1,4 +1,4 @@
-import hashlib as md5
+import hashlib
 import types
 from functools import wraps
 
@@ -60,7 +60,7 @@ def cached_get(timeout, *params):
                     param = str(param)
                 li.append(eval(param))
 
-            hashed = md5.new(":".join([str(l) for l in li])).hexdigest()
+            hashed = hashlib.md5(":".join([str(l) for l in li]).encode("utf-8")).hexdigest()
             cache_key = "ucache-get-%s" % hashed
             cached = cache.get(cache_key, None)
             if cached is None:

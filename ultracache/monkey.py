@@ -3,7 +3,7 @@ are covered within a containing caching template tag. The patch is based on
 Django 1.9 but is backwards compatible with 1.6."""
 
 import inspect
-import hashlib as md5
+import hashlib
 import pickle
 import types
 import collections
@@ -143,7 +143,7 @@ def drf_cache(func):
             if "django.contrib.sites" in settings.INSTALLED_APPS:
                 li.append(get_current_site_pk(request))
 
-            cache_key = md5.new(":".join([str(l) for l in li])).hexdigest()
+            cache_key = hashlib.md5(":".join([str(l) for l in li]).encode("utf-8")).hexdigest()
 
             cached = cache.get(cache_key, None)
             if cached is not None:

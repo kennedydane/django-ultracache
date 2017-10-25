@@ -14,7 +14,7 @@ COUNTER = 1
 class RenderView(TemplateView):
     """Simple view that renders a dummy model.
     """
-    template_name = "ultracache/render_view.html"
+    template_name = "tests/render_view.html"
 
     def get_context_data(self, **kwargs):
         context = super(RenderView, self).get_context_data(**kwargs)
@@ -31,7 +31,7 @@ class RenderView(TemplateView):
 
 
 class CachedView(TemplateView):
-    template_name = "ultracache/cached_view.html"
+    template_name = "tests/cached_view.html"
 
     @cached_get(300, "request.is_secure()", 456)
     def get(self, *args, **kwargs):
@@ -49,7 +49,7 @@ class CachedView(TemplateView):
 
 
 class CachedHeaderView(TemplateView):
-    template_name = "ultracache/cached_header_view.html"
+    template_name = "tests/cached_header_view.html"
     content_type = "application/json"
 
     @cached_get(300)
@@ -60,7 +60,7 @@ class CachedHeaderView(TemplateView):
 
 
 class BustableCachedView(TemplateView):
-    template_name = "ultracache/bustable_cached_view.html"
+    template_name = "tests/bustable_cached_view.html"
 
     @cached_get(300)
     def get(self, *args, **kwargs):
@@ -68,7 +68,7 @@ class BustableCachedView(TemplateView):
 
 
 class NonBustableCachedView(TemplateView):
-    template_name = "ultracache/non_bustable_cached_view.html"
+    template_name = "tests/non_bustable_cached_view.html"
 
     @cached_get(300, "request.path_info")
     def get(self, *args, **kwargs):
