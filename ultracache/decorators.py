@@ -51,14 +51,12 @@ def cached_get(timeout, *params):
                 li.append(get_current_site_pk(request))
 
             # Pre-sort kwargs
-            keys = kwargs.keys()
-            keys.sort()
-            for key in keys:
-                li.append("%s,%s" % (key, kwargs[key]))
+            for key in sorted(kwargs.keys()):
+                li.append("{},{}".format(key, kwargs[key]))
 
             # Extend cache key with custom variables
             for param in params:
-                if not isinstance(param, types.StringType):
+                if not isinstance(param, bytes):
                     param = str(param)
                 li.append(eval(param))
 
