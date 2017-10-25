@@ -6,7 +6,7 @@ import inspect
 import hashlib as md5
 import pickle
 import types
-from collections import OrderedDict
+import collections
 
 from django.core.cache import cache
 from django.db.models import Model, Manager
@@ -59,7 +59,7 @@ def _my_resolve_lookup(self, context):
                             raise VariableDoesNotExist("Failed lookup for key "
                                                        "[%s] in %r",
                                                        (bit, current))  # missing attribute
-                if callable(current):
+                if isinstance(current, collections.Callable):
                     if getattr(current, "do_not_call_in_templates", False):
                         pass
                     elif getattr(current, "alters_data", False):
@@ -135,7 +135,7 @@ def drf_cache(func):
                 or viewsets.get("*", {})
             evaluate = viewset_settings.get("evaluate", None)
             if evaluate is not None:
-                if callable(evaluate):
+                if isinstance(evaluate, collections.Callable):
                     li.append(evaluate(context, request))
                 else:
                     li.append(eval(evaluate))
