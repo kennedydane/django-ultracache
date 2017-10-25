@@ -1,4 +1,4 @@
-import md5
+import hashlib as md5
 import types
 from functools import wraps
 
