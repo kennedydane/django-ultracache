@@ -23,11 +23,11 @@ def broadcast_purge(path):
         # encoded. A typical broker URL setting remains effectively
         # unchanged but as soon as sub-paths are encountered this encoding
         # becomes necessary.
-        parsed = urlparse.urlparse(settings.CELERY_BROKER_URL)
+        parsed = urllib.parse.urlparse(settings.CELERY_BROKER_URL)
         url = "%s://%s/%s" % (
             parsed.scheme,
             parsed.netloc,
-            urllib.quote(parsed.path[1:], safe="")
+            urllib.parse.quote(parsed.path[1:], safe="")
         )
     connection = pika.BlockingConnection(pika.URLParameters(url))
     channel = connection.channel()
