@@ -40,7 +40,7 @@ class TemplateTagsTestCase(TestCase):
         )
         context = template.Context({'request' : self.request})
         result2 = t.render(context)
-        self.failUnlessEqual(result1, result2)
+        self.assertEqual(result1, result2)
 
         # Caching on different sites
         t = template.Template("{% load ultracache_tags %}\
@@ -54,7 +54,7 @@ class TemplateTagsTestCase(TestCase):
             )
             context = template.Context({'request' : self.request})
             result2 = t.render(context)
-            self.failIfEqual(result1, result2)
+            self.assertNotEqual(result1, result2)
 
     def test_variables(self):
         # Check that undefined variables do not break caching
@@ -68,7 +68,7 @@ class TemplateTagsTestCase(TestCase):
         )
         context = template.Context({'request' : self.request})
         result2 = t.render(context)
-        self.failUnlessEqual(result1, result2)
+        self.assertEqual(result1, result2)
 
         # Check that translation proxies are valid variables
         t = template.Template("{% load ultracache_tags %}\
@@ -81,7 +81,7 @@ class TemplateTagsTestCase(TestCase):
         )
         context = template.Context({'request' : self.request})
         result2 = t.render(context)
-        self.failUnlessEqual(result1, result2)
+        self.assertEqual(result1, result2)
 
         # Check that large integer variables do not break caching
         t = template.Template("{%% load ultracache_tags %%}\
@@ -94,7 +94,8 @@ class TemplateTagsTestCase(TestCase):
         )
         context = template.Context({'request' : self.request})
         result2 = t.render(context)
-        self.failUnlessEqual(result1, result2)
+        self.assertEqual(result1, result2)
+
 
     def test_context_without_request(self):
         t = template.Template("{%% load ultracache_tags %%}\
@@ -148,15 +149,15 @@ class TemplateTagsTestCase(TestCase):
         })
         result = t.render(context)
         dummy_proxy.cache('/aaa/', result)
-        self.failUnless('title = One' in result)
-        self.failUnless('title = Two' in result)
-        self.failUnless('counter outer = 1' in result)
-        self.failUnless('counter one = 1' in result)
-        self.failUnless('counter two = 1' in result)
-        self.failUnless('counter three = 1' in result)
-        self.failUnless('render_view = One' in result)
-        self.failUnless('include = One' in result)
-        self.failUnless(dummy_proxy.is_cached('/aaa/'))
+        self.assertTrue('title = One' in result)
+        self.assertTrue('title = Two' in result)
+        self.assertTrue('counter outer = 1' in result)
+        self.assertTrue('counter one = 1' in result)
+        self.assertTrue('counter two = 1' in result)
+        self.assertTrue('counter three = 1' in result)
+        self.assertTrue('render_view = One' in result)
+        self.assertTrue('include = One' in result)
+        self.assertTrue(dummy_proxy.is_cached('/aaa/'))
 
         # Change object one
         one.title = 'Onxe'
@@ -171,16 +172,16 @@ class TemplateTagsTestCase(TestCase):
         })
         result = t.render(context)
         dummy_proxy.cache('/bbb/', result)
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Two' in result)
-        self.failUnless('counter outer = 2' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 1' in result)
-        self.failUnless('counter three = 2' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failIf(dummy_proxy.is_cached('/aaa/'))
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Two' in result)
+        self.assertTrue('counter outer = 2' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 1' in result)
+        self.assertTrue('counter three = 2' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertFalse(dummy_proxy.is_cached('/aaa/'))
 
         # Change object two
         two.title = 'Twxo'
@@ -195,17 +196,17 @@ class TemplateTagsTestCase(TestCase):
         })
         result = t.render(context)
         dummy_proxy.cache('/ccc/', result)
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Twxo' in result)
-        self.failIf('title = Two' in result)
-        self.failUnless('counter outer = 3' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 3' in result)
-        self.failUnless('counter three = 2' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failIf(dummy_proxy.is_cached('/bbb/'))
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Twxo' in result)
+        self.assertFalse('title = Two' in result)
+        self.assertTrue('counter outer = 3' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 3' in result)
+        self.assertTrue('counter three = 2' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertFalse(dummy_proxy.is_cached('/bbb/'))
 
         # Change object three
         three.title = 'Threxe'
@@ -220,19 +221,19 @@ class TemplateTagsTestCase(TestCase):
         })
         result = t.render(context)
         dummy_proxy.cache('/ddd/', result)
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Twxo' in result)
-        self.failIf('title = Two' in result)
-        self.failUnless('title = Threxe' in result)
-        self.failIf('title = Three' in result)
-        self.failUnless('counter outer = 4' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 3' in result)
-        self.failUnless('counter three = 4' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failIf(dummy_proxy.is_cached('/ccc/'))
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Twxo' in result)
+        self.assertFalse('title = Two' in result)
+        self.assertTrue('title = Threxe' in result)
+        self.assertFalse('title = Three' in result)
+        self.assertTrue('counter outer = 4' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 3' in result)
+        self.assertTrue('counter three = 4' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertFalse(dummy_proxy.is_cached('/ccc/'))
 
         # Add a DummyOtherModel object five
         five = DummyOtherModel.objects.create(title='Five', code='five')
@@ -249,12 +250,12 @@ class TemplateTagsTestCase(TestCase):
         # RenderView is only view aware of DummyOtherModel. That means
         # test_ultracache_invalidate_outer and
         # test_ultracache_invalidate_render_view are expired.
-        self.failUnless('render_view = Five' in result)
-        self.failUnless('counter outer = 5' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 3' in result)
-        self.failUnless('counter three = 4' in result)
-        self.failIf(dummy_proxy.is_cached('/ddd/'))
+        self.assertTrue('render_view = Five' in result)
+        self.assertTrue('counter outer = 5' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 3' in result)
+        self.assertTrue('counter three = 4' in result)
+        self.assertFalse(dummy_proxy.is_cached('/ddd/'))
 
         # Delete object two
         two.delete()
@@ -268,14 +269,14 @@ class TemplateTagsTestCase(TestCase):
         })
         result = t.render(context)
         dummy_proxy.cache('/fff/', result)
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = Twxo' in result)
-        self.failIf('title = Two' in result)
-        self.failUnless('counter outer = 6' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 6' in result)
-        self.failUnless('counter three = 4' in result)
-        self.failIf(dummy_proxy.is_cached('/eee/'))
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = Twxo' in result)
+        self.assertFalse('title = Two' in result)
+        self.assertTrue('counter outer = 6' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 6' in result)
+        self.assertTrue('counter three = 4' in result)
+        self.assertFalse(dummy_proxy.is_cached('/eee/'))
 
 
 class DecoratorTestCase(TestCase):
@@ -304,16 +305,16 @@ class DecoratorTestCase(TestCase):
         response = self.client.get(url)
         result = response.content
         self.assertEqual(response.status_code, 200)
-        self.failUnless('title = One' in result)
-        self.failUnless('title = Two' in result)
-        self.failUnless('title = Three' in result)
-        self.failUnless('render_view = One' in result)
-        self.failUnless('include = One' in result)
-        self.failUnless('counter one = 1' in result)
-        self.failUnless('counter two = 1' in result)
-        self.failUnless('counter three = 1' in result)
-        self.failUnless('counter four = 1' in result)
-        self.failUnless('title = Four' in result)
+        self.assertTrue('title = One' in result)
+        self.assertTrue('title = Two' in result)
+        self.assertTrue('title = Three' in result)
+        self.assertTrue('render_view = One' in result)
+        self.assertTrue('include = One' in result)
+        self.assertTrue('counter one = 1' in result)
+        self.assertTrue('counter two = 1' in result)
+        self.assertTrue('counter three = 1' in result)
+        self.assertTrue('counter four = 1' in result)
+        self.assertTrue('title = Four' in result)
 
         # Change object one
         views.COUNTER = 2
@@ -321,17 +322,17 @@ class DecoratorTestCase(TestCase):
         one.save()
         response = self.client.get(url)
         result = response.content
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Two' in result)
-        self.failUnless('title = Three' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 1' in result)
-        self.failUnless('counter three = 2' in result)
-        self.failUnless('counter four = 2' in result)
-        self.failUnless('title = Four' in result)
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Two' in result)
+        self.assertTrue('title = Three' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 1' in result)
+        self.assertTrue('counter three = 2' in result)
+        self.assertTrue('counter four = 2' in result)
+        self.assertTrue('title = Four' in result)
 
         # Change object two
         views.COUNTER = 3
@@ -339,18 +340,18 @@ class DecoratorTestCase(TestCase):
         two.save()
         response = self.client.get(url)
         result = response.content
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Twxo' in result)
-        self.failIf('title = Two' in result)
-        self.failUnless('title = Three' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 3' in result)
-        self.failUnless('counter three = 2' in result)
-        self.failUnless('counter four = 3' in result)
-        self.failUnless('title = Four' in result)
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Twxo' in result)
+        self.assertFalse('title = Two' in result)
+        self.assertTrue('title = Three' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 3' in result)
+        self.assertTrue('counter three = 2' in result)
+        self.assertTrue('counter four = 3' in result)
+        self.assertTrue('title = Four' in result)
 
         # Change object three
         views.COUNTER = 4
@@ -358,19 +359,19 @@ class DecoratorTestCase(TestCase):
         three.save()
         response = self.client.get(url)
         result = response.content
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Twxo' in result)
-        self.failIf('title = Two' in result)
-        self.failUnless('title = Threxe' in result)
-        self.failIf('title = Three' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 3' in result)
-        self.failUnless('counter three = 4' in result)
-        self.failUnless('counter four = 4' in result)
-        self.failUnless('title = Four' in result)
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Twxo' in result)
+        self.assertFalse('title = Two' in result)
+        self.assertTrue('title = Threxe' in result)
+        self.assertFalse('title = Three' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 3' in result)
+        self.assertTrue('counter three = 4' in result)
+        self.assertTrue('counter four = 4' in result)
+        self.assertTrue('title = Four' in result)
 
         # Change object four
         views.COUNTER = 5
@@ -378,20 +379,20 @@ class DecoratorTestCase(TestCase):
         four.save()
         response = self.client.get(url)
         result = response.content
-        self.failUnless('title = Onxe' in result)
-        self.failIf('title = One' in result)
-        self.failUnless('title = Twxo' in result)
-        self.failIf('title = Two' in result)
-        self.failUnless('title = Threxe' in result)
-        self.failIf('title = Three' in result)
-        self.failUnless('counter one = 2' in result)
-        self.failUnless('counter two = 3' in result)
-        self.failUnless('counter three = 4' in result)
-        self.failUnless('counter four = 5' in result)
-        self.failUnless('render_view = Onxe' in result)
-        self.failUnless('include = Onxe' in result)
-        self.failUnless('title = Fouxr' in result)
-        self.failIf('title = Four' in result)
+        self.assertTrue('title = Onxe' in result)
+        self.assertFalse('title = One' in result)
+        self.assertTrue('title = Twxo' in result)
+        self.assertFalse('title = Two' in result)
+        self.assertTrue('title = Threxe' in result)
+        self.assertFalse('title = Three' in result)
+        self.assertTrue('counter one = 2' in result)
+        self.assertTrue('counter two = 3' in result)
+        self.assertTrue('counter three = 4' in result)
+        self.assertTrue('counter four = 5' in result)
+        self.assertTrue('render_view = Onxe' in result)
+        self.assertTrue('include = Onxe' in result)
+        self.assertTrue('title = Fouxr' in result)
+        self.assertFalse('title = Four' in result)
 
     def test_decorator_header(self):
         """Test that decorator preserves headers
@@ -413,12 +414,12 @@ class DecoratorTestCase(TestCase):
         """
         url = reverse('bustable-cached-view')
         response = self.client.get(url + '?aaa=1')
-        self.failUnless('aaa=1' in response.content)
+        self.assertTrue('aaa=1' in response.content)
         response = self.client.get(url + '?aaa=2')
-        self.failUnless('aaa=2' in response.content)
+        self.assertTrue('aaa=2' in response.content)
 
         url = reverse('non-bustable-cached-view')
         response = self.client.get(url + '?aaa=1')
-        self.failUnless('aaa=1' in response.content)
+        self.assertTrue('aaa=1' in response.content)
         response = self.client.get(url + '?aaa=2')
-        self.failIf('aaa=2' in response.content)
+        self.assertFalse('aaa=2' in response.content)
