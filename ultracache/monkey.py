@@ -3,10 +3,7 @@ are covered within a containing caching template tag. The patch is based on
 Django 1.9 but is backwards compatible with 1.6."""
 
 import inspect
-try:
-    import md5
-except:
-    import hashlib as md5
+import hashlib as md5
 import pickle
 import types
 from collections import OrderedDict
